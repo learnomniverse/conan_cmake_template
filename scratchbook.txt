@@ -1,0 +1,28 @@
+alex@nvbox:~/conan_cmake_template$ conan profile detect
+detect_api: Found gcc 11
+detect_api: gcc>=5, using the major as version
+detect_api: gcc C++ standard library: libstdc++11
+
+Detected profile:
+[settings]
+arch=x86_64
+build_type=Release
+compiler=gcc
+compiler.cppstd=gnu17
+compiler.libcxx=libstdc++11
+compiler.version=11
+os=Linux
+
+WARN: This profile is a guess of your environment, please check it.
+WARN: The output of this command is not guaranteed to be stable and can change in future Conan versions.
+WARN: Use your own profile files for stability.
+Saving detected profile to /home/alex/.conan2/profiles/default
+alex@nvbox:~/conan_cmake_template$
+
+
+# generators path not in cwd though
+conan create .
+
+conan install . --output-folder=build --build="*"
+
+cd build && cmake --preset conan-release ..
