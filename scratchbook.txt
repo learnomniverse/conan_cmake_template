@@ -20,9 +20,13 @@ Saving detected profile to /home/alex/.conan2/profiles/default
 alex@nvbox:~/conan_cmake_template$
 
 
-# generators path not in cwd though
+# build AND install in "package" subdirs immediately
 conan create .
+# do not build but keep in cache downloaded, will build at the first use
+conan export .
 
-conan install . --output-folder=build --build="*"
+# used not for building packages but for GATHERING and INSTALLING (if needed) DEPS of APPS - need another conanfile.py
+conan install . -of build
+
 
 cd build && cmake --preset conan-release ..
