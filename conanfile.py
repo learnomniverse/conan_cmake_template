@@ -4,13 +4,15 @@ from conan.tools.cmake import CMakeToolchain, CMake, cmake_layout, CMakeDeps
 from conan import ConanFile
 
 
-class HelloApp(ConanFile):
-    name = "hello"
+class OmniverseApp(ConanFile):
+    name = "omniapp"
     version = "1.0"
     settings = "os", "compiler", "build_type", "arch"
-    description = "Kit SDK binary dependency"
+    description = "Omniverse extension application"
     license = "MIT"
-    requires = "kit-sdk/105.1.0"
+    requires = [
+        "kit-sdk/105.1.0"
+    ]
 
     def generate(self):
         tc = CMakeToolchain(self)

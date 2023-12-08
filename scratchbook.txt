@@ -20,13 +20,18 @@ Saving detected profile to /home/alex/.conan2/profiles/default
 alex@nvbox:~/conan_cmake_template$
 
 
-# build AND install in "package" subdirs immediately
-conan create .
-# do not build but keep in cache downloaded, will build at the first use
-conan export .
+# build AND install in "package" subdirs immediately whatever conanfile.py is contained int he 'deps/kit-sdk' dir
+conan create deps/kit-sdk
+(
+another less useful command:
+    # do not build but keep in cache downloaded, will build at the first use
+    conan export .
+)
 
 # used not for building packages but for GATHERING and INSTALLING (if needed) DEPS of APPS - need another conanfile.py
-conan install . -of build
+# use THIS for the main app conanfile.py
+conan install . --output-folder _compiler
 
 
+# finally use cmake as set up by conan
 cd build && cmake --preset conan-release ..
