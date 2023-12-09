@@ -14,8 +14,10 @@ class NvUsdConan(ConanFile):
     # https://github.com/conan-io/conan/issues/3287#issuecomment-993960784
     # workaround for unsupported proprietary 7z
     def system_requirements(self):
-        import pip
-        pip.main(["install", "py7zr"])
+        import subprocess
+        import sys
+        # pip.main(["install", "py7zr"])
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "py7zr"])
 
     def build(self):
         # nv_usd = "https://d4i3qtqj3r0z5.cloudfront.net/nv-usd%4022.11.nv.0.2.1195.84b2e524-linux64_py310-centos_release-releases-105-1.7z"

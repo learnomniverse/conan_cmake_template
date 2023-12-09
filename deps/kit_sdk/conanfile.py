@@ -15,8 +15,10 @@ class KitSDKConan(ConanFile):
     # https://github.com/conan-io/conan/issues/3287#issuecomment-993960784
     # workaround for unsupported proprietary 7z
     def system_requirements(self):
-        import pip
-        pip.main(["install", "py7zr"])
+        import subprocess
+        import sys
+        # pip.main(["install", "py7zr"])
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "py7zr"])
 
     # def build_requirements(self): # windows only unfortunately
     #     self.tool_requires("7zip/19.00")

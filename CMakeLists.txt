@@ -7,10 +7,6 @@ message(STATUS "CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
 # DEBUG
 
 
-# Find kit-sdk
-find_package(kit-sdk REQUIRED)
-
-
 
 
 ## ADESSO: scarica le dipendenze necessarie trovando gli URL da packman (tutto quello che c'è in
@@ -20,8 +16,11 @@ find_package(kit-sdk REQUIRED)
 # Poi,  finalmente, scrivi il VERO cmake add_library per il release/exts/extensionname/bin/libextensionname.plugin.so e tenta di compilare un plugin carbon nativo. Suggerisco iniziare SENZA Pybind.
 # Ancora meglio: 3 step e 3 estensioni: una py only, una native only e una pybind. La prima sarà solo da
 # far funzionare i symlink. Fregatene di kit kernel sinceramente.. lo spiegherai dopo che gli utenti possono ridistribuire SENZA usare questa robaccia. Farei proprio un repo a parte magari con un submodule git dove metti tutti sti script conan e cmake.
+# nice to have: muovere tutta la logica cmake comune in un file cmake (tipo per le cartelle) E le dipendenze in un submodule git che sarà un repo tipo "public_ov_tools" o qualcosa del genere.
 
 
+
+##################################### UTILITY STUFF ###########################################################
 
 # A function that creates a symbolic link from source to destination in a working directory
 # Works on Linux and Windows (CMake >= 3.13).
@@ -40,6 +39,51 @@ function(create_symlink destination symlink_name working_directory)
     execute_process(COMMAND "${CMAKE_COMMAND}" -E create_symlink "${destination}" "${symlink_name}" WORKING_DIRECTORY "${working_directory}")
   endif()
 endfunction()
+
+function(create_new_folder parent_folder folder_name)
+  # Create the full path for the folder
+  set(folder_path "${parent_folder}/${folder_name}")
+  file(TO_NATIVE_PATH "${folder_path}" folder_path_native)
+
+  # Create the folder if it does not exist
+  file(MAKE_DIRECTORY "${folder_path_native}")
+endfunction()
+
+
+# Define a function named get_writing_folder that takes one argument: folder_stack
+function(get_writing_folder_from_folder_stack folder_stack)
+  # message("get_writing_folder_from_folder_stack called with folder_stack: ${folder_stack}")
+  # Get all elements in folder_stack and join them together in a single path
+  list(LENGTH folder_stack folder_stack_size)
+  set(writing_folder "")
+
+  if(folder_stack_size STREQUAL 0)
+    set(writing_folder "${writing_folder}" PARENT_SCOPE)
+    return()
+  endif()
+
+  message("foreach index RANGE 0 ${folder_stack_size}-1")
+
+  # Iterate through folder_stack to create the path
+  math(EXPR count "${folder_stack_size} - 1")
+  foreach(index RANGE 0 ${count})
+    # message("get item at index ${index}")
+    list(GET folder_stack ${index} folder_element)
+    if (folder_element)
+      # Concatenate folder_element to writing_folder
+      set(writing_folder "${writing_folder}/${folder_element}")
+    endif()
+  endforeach()
+  # Remove leading "/" if it exists
+  string(REGEX REPLACE "^/" "" writing_folder "${writing_folder}")
+
+  # Return the writing_folder variable
+  set(writing_folder "${writing_folder}" PARENT_SCOPE)
+  return()
+endfunction()
+
+
+
 
 # Creates a folder structure made of new folders and symlinks (Windows or Unix)
 #
@@ -64,15 +108,16 @@ endfunction()
 function(create_folder_structure root_folder ascii_art)
   # Split the ASCII art into lines
   string(REPLACE "\n" ";" ascii_lines "${ascii_art}")
-  message(WARNING "input: ${ascii_lines}")
+  # message(WARNING "input: ${ascii_lines}")
 
 #   foreach(line IN LISTS ascii_lines)
 #       message(WARNING "line: ${line}")
 #   endforeach()
 
   # Keep track of the current indentation level and parent folder
-  set(indent_level 0)
-  set(parent_folder "${root_folder}")
+  set(folder_stack "")
+  set(last_folder_created "")
+
   message("---------------------------------------------------------------")
 
   # Loop through each line of the ASCII art
@@ -118,12 +163,19 @@ function(create_folder_structure root_folder ascii_art)
 
 
 
-
-    #   string(REGEX MATCH "^[^ \\+|\\-]+" useful_part "${line}")
-    #   string(LENGTH "${useful_part}" useful_part_count)
-    #   math(EXPR indent_count "${line_length} - ${useful_part_count}")
-    #   string(SUBSTRING ${line} ${indent_count} -1 useful_part)
-
+      # Check if the line has the form of a symlink or just a folder name
+      set(is_symlink FALSE)
+      if(useful_part MATCHES "^(.+)\\s*->\\s*(.+)$")
+        message("Detected as a symlink: ${useful_part}..")
+        set(is_symlink TRUE)
+        # Trim the whitespace from the source and destination
+        string(STRIP "${CMAKE_MATCH_1}" symlink_name)
+        string(STRIP "${CMAKE_MATCH_2}" symlink_destination)
+      else()
+        message("Detected as a simple folder name (not symlink): ${useful_part}...")
+        # Trim the whitespace from the folder name
+        string(STRIP "${useful_part}" folder_name)
+      endif()
 
 
       string(LENGTH "${useful_part}" useful_part_count)
@@ -131,42 +183,82 @@ function(create_folder_structure root_folder ascii_art)
 
       # Divide the indent count by four to get the indent level
       math(EXPR indent_count "${indent_count} / 4")
+      # math(EXPR indent_count "${indent_count} + 1")
 
-      # If the indent level is greater than the current level, push the parent folder to a stack
-      message("indent_count is now ${indent_count} while our current indent_level is ${indent_level}")
-      if(indent_count GREATER indent_level)
-        message("APPENDING ${parent_folder} to parent stack ${parent_stack}")
-        list(APPEND parent_stack "${parent_folder}")
-      # If the indent level is less than the current level, pop the parent folder from the stack
-      elseif(indent_count LESS indent_level)
-        message("POPPIN from parent stack ${parent_stack}")
-        math(EXPR pop_count "${indent_level} - ${indent_count}")
+      list(LENGTH folder_stack current_indent_level)
+
+      message("indent_count is now ${indent_count} while our current indent_level is ${current_indent_level}")
+      if(indent_count GREATER current_indent_level)
+        message("INCREASING OUR CURRENT_INDENT_LEVEL  (if this is not a symlink, that is)")
+
+        # Safety: we cannot increase indent_level by more than one at once!
+        MATH(EXPR expected_indent_count "${current_indent_level} + 1")
+        if (NOT indent_count EQUAL expected_indent_count)
+          message(FATAL_ERROR "Trying to create a subfolder with an indentation level of more than once at once!")
+        endif()
+
+        # Safety: we cannot insert a sub-element if the last inserted folder was a symlink
+        if (last_folder_created STREQUAL "")
+          message(FATAL_ERROR "Trying to create a subfolder on a symlink parent!")
+        endif()
+
+        list(APPEND folder_stack "${last_folder_created}")
+
+        # get_writing_folder_from_folder_stack("${folder_stack}") # this sets the writing_folder var
+
+        message("Level has been INCREASED")
+
+
+      elseif(indent_count LESS current_indent_level)
+        # Time to go some levels up (could be more than one here!)
+
+        math(EXPR pop_count "${current_indent_level} - ${indent_count}")
         foreach(i RANGE 1 ${pop_count})
-          list(POP_BACK parent_stack parent_folder)
-          list(GET parent_stack -1 parent_folder)
+          list(POP_BACK folder_stack dropped_folder)
         endforeach()
+
+        # list(GET folder_stack -1 parent_folder)
+        # # Set the current indent level to the new indent count
+        # set(current_indent_level "${indent_count}")
+
+
+
+        message("Level has been DECREASED")
+      else()
+        # same level, compose whatever's on the stack and use it as it is
+        # get_writing_folder_from_folder_stack("${folder_stack}") # this sets the writing_folder var
+        message("level has been KEPT THE SAME")
       endif()
 
-      message("new parent_folder: ${parent_folder}")
-      message("new parent_stack: ${parent_stack}")
 
-      # Set the current indent level to the indent count
-      set(indent_level "${indent_count}")
+      get_writing_folder_from_folder_stack("${folder_stack}") # this sets the writing_folder var
+      message(">>>>>->>>>here's where we should write the new element: ${writing_folder}")
+
+      # Finally compose the final writing folder
+      if(NOT writing_folder STREQUAL "")
+          set(writing_folder_absolute "${root_folder}/${writing_folder}")
+      else()
+          set(writing_folder_absolute "${root_folder}")
+      endif()
+
+
+      # message("Now operating in this folder for the next operation: ${writing_folder_absolute}, stack is: ${folder_stack}")
 
       # Drop graphical useless characters
       # string(SUBSTRING ${line} ${indent_count} -1 no_ascii_art_content)
 
 
-      message("indent_count: ${indent_count}, indent_level: ${indent_level}, parent_folder: ${parent_folder}, useful_part: '${useful_part}', useful_part_count: ${useful_part_count}")
+      # message("current_indent_level: ${current_indent_level}, current_folder: ${current_folder}, useful_part: '${useful_part}', useful_part_count: ${useful_part_count}")
 
       # Extract the folder name or the symlink source and destination from the line
     #   string(REGEX REPLACE "^ *\\|?\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\- " "" folder_or_symlink "${line}")
 
-      # Check if the line has the form of a symlink or just a folder name
-      if(useful_part MATCHES "^(.+)\\s*->\\s*(.+)$")
+      # list(GET folder_stack -1 parent_folder)
+
+      if(is_symlink)
         # message("Folder name: ${CMAKE_MATCH_1}")
         # message("Symlink destination: ${CMAKE_MATCH_2}")
-        message("Detected as a symlink: ${useful_part}..")
+
         # # Split the line by the '->' symbol
         # string(REPLACE "->" ";" symlink_parts "${folder_or_symlink}")
 
@@ -174,9 +266,6 @@ function(create_folder_structure root_folder ascii_art)
         # list(GET symlink_parts 0 symlink_source)
         # list(GET symlink_parts 1 symlink_destination)
 
-        # Trim the whitespace from the source and destination
-        string(STRIP "${CMAKE_MATCH_1}" symlink_name)
-        string(STRIP "${CMAKE_MATCH_2}" symlink_destination)
         # message("symlink_source: ${symlink_source}")
         # message("symlink_destination: ${symlink_destination}")
 
@@ -186,54 +275,80 @@ function(create_folder_structure root_folder ascii_art)
         # set(symlink_path "\"${parent_folder}/${symlink_name}\"")
 
         # Create the symlink using the create_symlink function
-        message("CREATE_SYMLINK ${symlink_destination} ${symlink_name} ${symlink_path} in: ${parent_folder}")
-        create_symlink("${symlink_destination}" "${symlink_name}" "${parent_folder}")
+        message("CREATE_SYMLINK ${symlink_destination} ${symlink_name} in: ${writing_folder_absolute}")
+        create_symlink("${symlink_destination}" "${symlink_name}" "${writing_folder_absolute}")
+
+        # Make sure we're not asked to create sub-folders after a symlink..
+        set(last_folder_created "")
+
       else()
-          message("Just a folder name: ${useful_part}...")
-          # Trim the whitespace from the folder name
-          string(STRIP "${useful_part}" folder_name)
 
-          # Create the full path for the folder
-          set(folder_path "${parent_folder}/${folder_name}")
+        create_new_folder("${writing_folder_absolute}" "${folder_name}")
+        set(last_folder_created "${folder_name}")
 
-          # Create the folder if it does not exist
-          message("MAKE_DIRECTORY ${folder_path}")
-          file(MAKE_DIRECTORY "${folder_path}")
-
-          # Set the parent folder to the folder path
-          set(parent_folder "${folder_path}")
       endif()
 
     endif()
   endforeach()
 endfunction()
 
+##################################### UTILITY STUFF END ###########################################################
 
 
-# create_symlink("/usr/local/bin" "usr")
-# return()
+if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
+  set(OS_AND_ARCHITECTURE "linux-x86_64")
+
+  if(NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
+    message(FATAL_ERROR "Unsupported architecture! This project requires x64 architecture.")
+  endif()
+
+elseif(CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
+  set(OS_AND_ARCHITECTURE "windows-x86_64")
+
+  if(NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
+    message(FATAL_ERROR "Unsupported architecture! This project requires x64 architecture.")
+  endif()
+
+else()
+  message(FATAL_ERROR "Unsupported operating system")
+endif()
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+  set(BUILD_CONFIG "debug")
+elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
+  set(BUILD_CONFIG "release")
+else()
+    message(FATAL_ERROR "Unsupported build type. Use Debug or Release.")
+endif()
+
+# Find dependencies thanks to conan
+find_package(kit_sdk REQUIRED)
+find_package(nv_usd REQUIRED)
+
+# ${some_cmake_folder_name}
+# +-- ${some_cmake_folder_name}
+# |   +-- usr -> /usr/local/bin
+# |   +-- usr2 -> ${tmp_fol}
+# +-- include
+# |   +-- usrTEMP -> ${tmp_fol}
+# +-- lib
+# |   +-- usr -> /usr/local/lib
+# +-- src
+#     +-- ${some_cmake_folder_name2}
+#     |   +-- this is a great folder!
+#     +-- other_folder
 
 
-set(some_cmake_folder_name "my_cmake_folder_name 229")
-set(some_cmake_folder_name2 "e8qw8eqwe8qw9eqw.exe")
-set(cmake_variable "lulzy thingz")
-set(tmp_fol "/tmp")
-
-# Create the desired ASCII art of new folders and symlinks in the directory root_folder
-create_folder_structure(${CMAKE_CURRENT_SOURCE_DIR}/temp
+# Create a _build folders structure
+create_folder_structure(${CMAKE_CURRENT_SOURCE_DIR}/_build
 "
-${some_cmake_folder_name}
-+-- ${some_cmake_folder_name}
-|   +-- usr -> /usr/local/bin
-|   +-- usr2 -> ${tmp_fol}
-+-- include
-|   +-- usrTEMP -> ${tmp_fol}
-+-- lib
-|   +-- usr -> /usr/local/lib
-+-- src
-    +-- ${some_cmake_folder_name2}
-    |   +-- this is a great folder!
-    +-- other_folder
+${OS_AND_ARCHITECTURE}
++-- ${BUILD_CONFIG}
+|   +-- apps -> ${CMAKE_CURRENT_SOURCE_DIR}/apps
+|   +-- exts
+|   +-- kit -> ${kit_sdk_PACKAGE_FOLDER_RELEASE}
+target-deps
++-- nv_usd -> ${nv_usd_PACKAGE_FOLDER_RELEASE}
 ")
 
 # execute_process(COMMAND "${CMAKE_COMMAND}" -E create_symlink "/usr/local/bin" "usr" WORKING_DIRECTORY "/home/alex/conan_cmake_template/temp/my_cmake_folder_name 229/my_cmake_folder_name 229")
