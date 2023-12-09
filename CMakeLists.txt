@@ -18,6 +18,46 @@ message(STATUS "CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
 # far funzionare i symlink. Fregatene di kit kernel sinceramente.. lo spiegherai dopo che gli utenti possono ridistribuire SENZA usare questa robaccia. Farei proprio un repo a parte magari con un submodule git dove metti tutti sti script conan e cmake.
 # nice to have: muovere tutta la logica cmake comune in un file cmake (tipo per le cartelle) E le dipendenze in un submodule git che sarà un repo tipo "public_ov_tools" o qualcosa del genere.
 
+# in sommario: for next time.. la folder structure in cmake ora funzia, continua ad aggiungere le altre deps del progetto kit-extension-template-cpp (boost-preprocessor(?), carb_sdk_plugins, forse python? ..etc..) ma VEDI quali servono per l'hello world.
+# e poi indica nelle conanfile.py QUALI sono i percorsi delle librerie. Cioè una roba tipo così per ognuna
+#
+# class MyLibraryConan(ConanFile):
+#     name = "mylibrary"
+#     version = "1.0"
+#     license = "MIT"
+#     url = "https://github.com/yourusername/mylibrary"
+#     description = "A sample Conan package for MyLibrary"
+#     settings = "os", "compiler", "build_type", "arch"
+#     generators = "cmake"
+#     exports_sources = "src/*", "CMakeLists.txt"
+
+#     def build(self):
+#         cmake = CMake(self)
+#         cmake.configure()
+#         cmake.build()
+
+#     def package(self):
+#         self.copy("*.h", dst="include", src="src")
+#         self.copy("*mylibrary.lib", dst="lib", keep_path=False)
+#         self.copy("*.dll", dst="bin", keep_path=False)
+#         self.copy("*.so", dst="lib", keep_path=False)
+#         self.copy("*.dylib", dst="lib", keep_path=False)
+#         self.copy("*.a", dst="lib", keep_path=False)
+
+#     def package_info(self):
+#         self.cpp_info.libs = ["mylibrary"]
+
+#         # Specify library directories
+#         self.cpp_info.libdirs = ["lib"]
+
+#         # Specify include directories
+#         self.cpp_info.includedirs = ["include"]
+
+#         # Specify CMake targets to be exported
+#         self.cpp_info.set_property("cmake_target", "MyLibrary")
+
+#         # Specify any other compile flags or definitions if needed
+#         self.cpp_info.cflags = ["-DMY_LIBRARY_FLAG"]
 
 
 ##################################### UTILITY STUFF ###########################################################
