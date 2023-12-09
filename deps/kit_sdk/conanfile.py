@@ -5,7 +5,7 @@ from conan import ConanFile
 
 
 class KitSDKConan(ConanFile):
-    name = "kit-sdk"
+    name = "kit_sdk"
     version = "105.1.0"
     settings = "os", "compiler", "build_type", "arch"
     description = "Kit SDK binary dependency"
@@ -25,6 +25,7 @@ class KitSDKConan(ConanFile):
     #     tools.download(self.url, "kit-sdk.7z")
     #     tools.unzip("kit-sdk.7z", destination="_deps")
     def build(self):
+        local_filename = "kit_sdk.7z"
         # kit_sdk = "https://d4i3qtqj3r0z5.cloudfront.net/kit-sdk%40105.1.0%2Brelease.51.a7407fb5.tc.linux-x86_64.release.7z"
         # debug quick download version
         kit_sdk = "http://127.0.0.1:8000/kit-sdk@105.1.0+release.51.a7407fb5.tc.linux-x86_64.release.7z"
@@ -35,7 +36,7 @@ class KitSDKConan(ConanFile):
         # _arch = str(self.settings.arch).lower()
         #  url = "{}/{}_{}.tgz".format(base_url, _os, _arch)
         # get(self, kit_sdk, filename="kit-sdk.7z", md5="2382ac114b2d91c4cd07b51a7e2272f0")
-        download(self, kit_sdk, filename="kit-sdk.7z", md5="2382ac114b2d91c4cd07b51a7e2272f0")
+        download(self, kit_sdk, filename=local_filename, md5="2382ac114b2d91c4cd07b51a7e2272f0")
         # get(self, kit_kernel, filename="kit_kernel.zip", md5="0363bf9d19dc9b3585a6e5b4f2bf8440")
 
         # self.run("7z x kit-sdk.7z")
@@ -43,9 +44,9 @@ class KitSDKConan(ConanFile):
         # unzip(self, "kit-sdk.7z")
 
         import py7zr
-        with py7zr.SevenZipFile("kit-sdk.7z", mode='r') as z:
+        with py7zr.SevenZipFile(local_filename, mode='r') as z:
             z.extractall(path=".")
-        os.unlink("./kit-sdk.7z")
+        os.unlink(local_filename)
 
     def package(self):
         copy(self, "*.*", self.build_folder, self.package_folder)

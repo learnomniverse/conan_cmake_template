@@ -2,3 +2,4 @@ _*
 CMakeUserPresets.json
 *.zip
 *.7z
+temp/

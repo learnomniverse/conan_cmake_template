@@ -2,22 +2,28 @@ import http.server
 import socketserver
 
 PORT = 8000
-FILE_TO_SERVE = "kit-sdk@105.1.0+release.51.a7407fb5.tc.linux-x86_64.release.7z"
+files_to_serve = {
+    "kit-sdk@105.1.0+release.51.a7407fb5.tc.linux-x86_64.release.7z",
+    "nv-usd@22.11.nv.0.2.1195.84b2e524-linux64_py310-centos_release-releases-105-1.7z"
+}
 
 Handler = http.server.SimpleHTTPRequestHandler
 
 
 class CustomHandler(Handler):
     def do_GET(self):
-        if self.path == f'/{FILE_TO_SERVE}':
+        # drop the leading '/' in '/filename.7z' before comparing
+        if self.path[1:] in files_to_serve:
+            print(f"-> requested file {self.path[1:]}, serving..")
             self.send_response(200)
             self.send_header('Content-type', 'application/x-7z-compressed')
             self.end_headers()
 
-            with open(FILE_TO_SERVE, 'rb') as file:
+            with open(self.path[1:], 'rb') as file:
                 self.wfile.write(file.read())
-            print("Done serving GET!")
+            print("-> DONE")
         else:
+            print("unhandled GET request")
             super().do_GET()
 
 
