@@ -19,7 +19,7 @@ repository = "https://github.com/NVIDIA-Omniverse/kit-extension-template-cpp"
 # Define the Python modules that this extension provides.
 # C++ only extensions need this just so tests don't fail.
 [[python.module]]
-name = "omni.example.deps"
+name = "omni.hello.world"
 
 # Define the C++ plugins that this extension provides.
 [[native.plugin]]

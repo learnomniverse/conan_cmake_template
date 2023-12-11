@@ -1,3 +1,41 @@
+1) lancia server in debug_serving_server così fai prima niente downloads
+    python3 server.py
+
+2) disinstalla eventuali deps
+    conan remove -c kit_sdk ; conan remove -c nv_usd ; conan remove -c carb_sdk ; conan remove -c pybind11 ; conan remove -c python
+
+3) Prima vanno installate le dipendenze..
+    ./deps/install_all_deps.sh
+
+4) Poi vanno generati i toolchain per le deps nela main dir del repo
+    rm -rf _compiler/* && conan install . --output-folder _compiler
+
+5) Ora tutto cmake!
+    cd _compiler && clear && rm -rf ../_build/* && cmake --preset conan-release ..
+
+6) A questo punto hai il makefile!
+    cmake --build . --config Release
+
+
+
+
+
+
+
+
+
+
+
+
+---------------------
+
+
+
+
+
+
+
+
 alex@nvbox:~/conan_cmake_template$ conan profile detect
 detect_api: Found gcc 11
 detect_api: gcc>=5, using the major as version

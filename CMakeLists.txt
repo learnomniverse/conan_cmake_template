@@ -364,6 +364,9 @@ endif()
 # Find dependencies thanks to conan
 find_package(kit_sdk REQUIRED)
 find_package(nv_usd REQUIRED)
+find_package(carb_sdk REQUIRED)
+find_package(pybind11 REQUIRED)
+find_package(python REQUIRED)
 
 # ${some_cmake_folder_name}
 # +-- ${some_cmake_folder_name}
@@ -378,6 +381,8 @@ find_package(nv_usd REQUIRED)
 #     |   +-- this is a great folder!
 #     +-- other_folder
 
+set(OMNI_HELLO_WORLD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/omni.hello.world")
+set(OMNI_HELLO_WORLD_BUILD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/_build/${OS_AND_ARCHITECTURE}/${BUILD_CONFIG}/exts/omni.hello.world")
 
 # Create a _build folders structure
 create_folder_structure(${CMAKE_CURRENT_SOURCE_DIR}/_build
@@ -386,36 +391,70 @@ ${OS_AND_ARCHITECTURE}
 +-- ${BUILD_CONFIG}
 |   +-- apps -> ${CMAKE_CURRENT_SOURCE_DIR}/apps
 |   +-- exts
+|   |   +-- omni.hello.world
+|   |       +-- bin
+|   |       +-- config -> ${OMNI_HELLO_WORLD_DIR}/config
+|   |       +-- data -> ${OMNI_HELLO_WORLD_DIR}/data
+|   |       +-- docs -> ${OMNI_HELLO_WORLD_DIR}/docs
+|   |       +-- omni
+|   |           +-- hello
+|   |               +-- world
 |   +-- kit -> ${kit_sdk_PACKAGE_FOLDER_RELEASE}
 target-deps
 +-- nv_usd -> ${nv_usd_PACKAGE_FOLDER_RELEASE}
++-- carb_sdk -> ${carb_sdk_PACKAGE_FOLDER_RELEASE}
++-- pybind11 -> ${pybind11_PACKAGE_FOLDER_RELEASE}
++-- python -> ${python_PACKAGE_FOLDER_RELEASE}
 ")
 
-# execute_process(COMMAND "${CMAKE_COMMAND}" -E create_symlink "/usr/local/bin" "usr" WORKING_DIRECTORY "/home/alex/conan_cmake_template/temp/my_cmake_folder_name 229/my_cmake_folder_name 229")
+# Now gather all the C++ sources
+set(SOURCES ${OMNI_HELLO_WORLD_DIR}/plugins/ExampleExtension.cpp)
+
+
+# Add the native plugin (the release/exts/extensionname/bin/libextensionname.plugin.so)
+add_library(omni.hello.world.plugin SHARED ${SOURCES})
+
+# Set the right output folder for the binary
+set_target_properties(omni.hello.world.plugin PROPERTIES
+  LIBRARY_OUTPUT_DIRECTORY ${OMNI_HELLO_WORLD_BUILD_DIR}/bin
+)
+
+target_include_directories(omni.hello.world.plugin PRIVATE
+  ${OMNI_HELLO_WORLD_DIR}/include
+)
+
+
+# # Include directories from Conan packages
+# target_include_directories(omni.hello.world.plugin PRIVATE
+#   carb_sdk::nv_usd
+
+# )
+
+# Link libraries from Conan packages. Also include directories!
+target_link_libraries(omni.hello.world.plugin PRIVATE
+  nv_usd::nv_usd
+  carb_sdk::carb_sdk
+)
 
 
 
+# Now generate the python bindings project
 
+set(SOURCES ${OMNI_HELLO_WORLD_DIR}/bindings/ExampleBindings.cpp)
 
+add_library(omni.hello.world.python SHARED ${SOURCES})
 
-# Create the _build
+set_target_properties(omni.hello.world.python PROPERTIES
+  LIBRARY_OUTPUT_DIRECTORY ${OMNI_HELLO_WORLD_BUILD_DIR}/omni/hello/world
+)
 
-# get a SYMLINK to kit-sdk!
+target_include_directories(omni.hello.world.python PRIVATE
+  ${OMNI_HELLO_WORLD_DIR}/include
+)
 
-# message(WARNING "Creating symlink in ${CMAKE_CURRENT_SOURCE_DIR}")
-# message(WARNING "source_file ${kit-sdk}")
-
-# works!
-# create_symlink(${kit-sdk_PACKAGE_FOLDER_RELEASE} ${CMAKE_CURRENT_SOURCE_DIR}/kit)
-
-
-
-
-
-
-
-
-
-# Add plugin (the release/exts/extensionname/bin/libextensionname.plugin.so)
-# add_library(omni.app SHARED plugin/StartingMainCppFile.cpp)
-# target_link_libraries(omni.app PRIVATE kit-sdk::kit-sdk)
+target_link_libraries(omni.hello.world.python PRIVATE
+  nv_usd::nv_usd
+  carb_sdk::carb_sdk
+  pybind11::pybind11
+  python::python
+)

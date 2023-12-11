@@ -4,11 +4,11 @@ from conan.tools.cmake import CMakeToolchain, CMake, cmake_layout, CMakeDeps
 from conan import ConanFile
 
 
-class NvUsdConan(ConanFile):
-    name = "nv_usd"
-    version = "22.11.nv.0.2.1195"
+class PyBind11Conan(ConanFile):
+    name = "pybind11"
+    version = "2.7.1-0"
     settings = "os", "compiler", "build_type", "arch"
-    description = "Kit SDK binary dependency"
+    description = "PyBind11 binary dependency"
     license = "MIT"
 
     # https://github.com/conan-io/conan/issues/3287#issuecomment-993960784
@@ -20,12 +20,12 @@ class NvUsdConan(ConanFile):
         subprocess.check_call([sys.executable, "-m", "pip", "install", "py7zr"])
 
     def build(self):
-        # nv_usd = "https://d4i3qtqj3r0z5.cloudfront.net/nv-usd%4022.11.nv.0.2.1195.84b2e524-linux64_py310-centos_release-releases-105-1.7z"
+        # pybind11 = "https://d4i3qtqj3r0z5.cloudfront.net/pybind11%402.7.1-0.7z"
         # debug quick download version
-        nv_usd = "http://127.0.0.1:8000/nv-usd@22.11.nv.0.2.1195.84b2e524-linux64_py310-centos_release-releases-105-1.7z"
-        local_filename = "nv_usd.7z"
+        pybind11 = "http://127.0.0.1:8000/pybind11@2.7.1-0.7z"
+        local_filename = "pybind11.7z"
 
-        download(self, nv_usd, filename=local_filename, md5="b8abd8ccf51d42dde52010a898f9dbc2")
+        download(self, pybind11, filename=local_filename, md5="7e13af10d18fc7a19f10a2633432b633")
 
         import py7zr
         with py7zr.SevenZipFile(local_filename, mode='r') as z:

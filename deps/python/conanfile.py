@@ -4,11 +4,11 @@ from conan.tools.cmake import CMakeToolchain, CMake, cmake_layout, CMakeDeps
 from conan import ConanFile
 
 
-class NvUsdConan(ConanFile):
-    name = "nv_usd"
-    version = "22.11.nv.0.2.1195"
+class PythonConan(ConanFile):
+    name = "python"
+    version = "3.10.13+nv3"
     settings = "os", "compiler", "build_type", "arch"
-    description = "Kit SDK binary dependency"
+    description = "Python binary dependency"
     license = "MIT"
 
     # https://github.com/conan-io/conan/issues/3287#issuecomment-993960784
@@ -20,12 +20,12 @@ class NvUsdConan(ConanFile):
         subprocess.check_call([sys.executable, "-m", "pip", "install", "py7zr"])
 
     def build(self):
-        # nv_usd = "https://d4i3qtqj3r0z5.cloudfront.net/nv-usd%4022.11.nv.0.2.1195.84b2e524-linux64_py310-centos_release-releases-105-1.7z"
+        # python = "https://d4i3qtqj3r0z5.cloudfront.net/python%403.10.13%2Bnv3-linux-x86_64.7z"
         # debug quick download version
-        nv_usd = "http://127.0.0.1:8000/nv-usd@22.11.nv.0.2.1195.84b2e524-linux64_py310-centos_release-releases-105-1.7z"
-        local_filename = "nv_usd.7z"
+        python = "http://127.0.0.1:8000/python@3.10.13+nv3-linux-x86_64.7z"
+        local_filename = "python.7z"
 
-        download(self, nv_usd, filename=local_filename, md5="b8abd8ccf51d42dde52010a898f9dbc2")
+        download(self, python, filename=local_filename, md5="e468b302ba6dcfd3ec72187072a8f252")
 
         import py7zr
         with py7zr.SevenZipFile(local_filename, mode='r') as z:
@@ -39,7 +39,8 @@ class NvUsdConan(ConanFile):
         # print(f"BBBBBBBBBBBBBBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA {self.package_folder}")
 
     def package_info(self):
-        self.cpp_info.includedirs = ['include']
+        self.cpp_info.bindirs = ['bin']
+        self.cpp_info.includedirs = ['include/python3.10']
         self.cpp_info.libdirs = ['lib']
         # self.cpp_info.names["cmake_find_package"] = "kit-sdk"
         # self.cpp_info.components["kit-sdk"].names["cmake_find_package"] = "kit-sdk"
