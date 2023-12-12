@@ -75,7 +75,7 @@ class CarbSDKConan(ConanFile):
         build_folder = os.path.join("_build", os_folder, config_folder)
         self.cpp_info.libdirs.append(build_folder)
 
-        # self.cpp_info.libs = ['carb']
+        self.cpp_info.libs = ['carb']
 
         # self.cpp_info.names["cmake_find_package"] = "kit-sdk"
         # self.cpp_info.components["kit-sdk"].names["cmake_find_package"] = "kit-sdk"

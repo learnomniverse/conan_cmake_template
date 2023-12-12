@@ -65,6 +65,9 @@ class PythonConan(ConanFile):
         self.cpp_info.bindirs = ['bin']
         if self.settings.os == "Windows": # Fix packman mispackaging
             self.cpp_info.includedirs = ['include']
+            self.cpp_info.libdirs = ['libs']
+            self.cpp_info.libs = ['python3', 'python310']
         else:
             self.cpp_info.includedirs = ['include/python3.10']
-        self.cpp_info.libdirs = ['lib']
+            self.cpp_info.libdirs = ['lib']
+            self.cpp_info.libs = ['python3', 'python3.10']

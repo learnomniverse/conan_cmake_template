@@ -13,7 +13,6 @@ from ..bindings._example_carb_bindings import *
 # Global public interface object.
 _example_carb_interface = None
 
-
 # Public API.
 def get_example_carb_interface() -> IExampleCarbInterface:
     return _example_carb_interface

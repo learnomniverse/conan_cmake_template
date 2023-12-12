@@ -14,8 +14,12 @@ project(omni.app)
 find_package(kit_sdk REQUIRED)
 find_package(nv_usd REQUIRED)
 find_package(carb_sdk REQUIRED)
-find_package(pybind11 REQUIRED)
 find_package(python REQUIRED)
+# Make totally sure that we're using the python distro shipped by conan instead of one that pybind11 _might_
+# be getting from the host system (and that it could mismatch compared to the carbonite python plugin that the
+# conan kit is using - see https://github.com/pybind/pybind11/issues/2154)
+set(PYTHON_EXECUTABLE "${python_PACKAGE_FOLDER_RELEASE}/python")
+find_package(pybind11 REQUIRED)
 # </gather_dependencies>
 
 # Just some helper functions to create symlinks, set up the folder structure in _build,
@@ -98,8 +102,12 @@ set(SOURCES ${OMNI_HELLO_WORLD_DIR}/plugins/ExampleExtension.cpp)
 add_library(omni.hello.world.plugin SHARED ${SOURCES})
 
 # Set the right output folder for the binary
+set(OUTPUT_DIR_FOR_NATIVE_CPP_CARB_PLUGIN "${OMNI_HELLO_WORLD_BUILD_DIR}/bin")
+file(TO_NATIVE_PATH "${OUTPUT_DIR_FOR_NATIVE_CPP_CARB_PLUGIN}" OUTPUT_DIR_FOR_NATIVE_CPP_CARB_PLUGIN_NATIVE)
 set_target_properties(omni.hello.world.plugin PROPERTIES
-  LIBRARY_OUTPUT_DIRECTORY ${OMNI_HELLO_WORLD_BUILD_DIR}/bin
+  LIBRARY_OUTPUT_DIRECTORY $<1:${OUTPUT_DIR_FOR_NATIVE_CPP_CARB_PLUGIN_NATIVE}>
+  RUNTIME_OUTPUT_DIRECTORY $<1:${OUTPUT_DIR_FOR_NATIVE_CPP_CARB_PLUGIN_NATIVE}>
+  ARCHIVE_OUTPUT_DIRECTORY $<1:${OUTPUT_DIR_FOR_NATIVE_CPP_CARB_PLUGIN_NATIVE}>
 )
 
 target_include_directories(omni.hello.world.plugin PRIVATE
@@ -115,10 +123,12 @@ target_link_libraries(omni.hello.world.plugin PRIVATE
 # Create a custom target to copy the __init__.py file (the only one we don't symlink)
 set(SOURCE_FILE "${OMNI_HELLO_WORLD_DIR}/python/__init__.py")
 set(DESTINATION_DIR "${OMNI_HELLO_WORLD_BUILD_DIR}/omni/hello/world")
+file(TO_NATIVE_PATH "${SOURCE_FILE}" SOURCE_FILE_NATIVE)
+file(TO_NATIVE_PATH "${DESTINATION_DIR}" DESTINATION_DIR_NATIVE)
 add_custom_target(CopyPythonInitFile
-    COMMAND ${CMAKE_COMMAND} -E copy "${SOURCE_FILE}" "${DESTINATION_DIR}"
-    DEPENDS ${SOURCE_FILE}
-    COMMENT "Copying main python module __init__.py to ${DESTINATION_DIR}"
+    COMMAND ${CMAKE_COMMAND} -E copy "${SOURCE_FILE_NATIVE}" "${DESTINATION_DIR_NATIVE}"
+    DEPENDS ${SOURCE_FILE_NATIVE}
+    COMMENT "Copying main python module __init__.py to ${DESTINATION_DIR_NATIVE}"
 )
 
 # Add the custom target to the build process
@@ -134,8 +144,12 @@ set(SOURCES ${OMNI_HELLO_WORLD_DIR}/bindings/ExampleBindings.cpp)
 # add_library(omni.hello.world.python SHARED ${SOURCES})
 pybind11_add_module(_example_carb_bindings SHARED ${SOURCES})
 
+set(OUTPUT_DIR_FOR_BINDINGS_CARB_PLUGIN "${OMNI_HELLO_WORLD_BUILD_DIR}/omni/hello/world/bindings")
+file(TO_NATIVE_PATH "${OUTPUT_DIR_FOR_BINDINGS_CARB_PLUGIN}" OUTPUT_DIR_FOR_BINDINGS_CARB_PLUGIN_NATIVE)
 set_target_properties(_example_carb_bindings PROPERTIES
-  LIBRARY_OUTPUT_DIRECTORY ${OMNI_HELLO_WORLD_BUILD_DIR}/omni/hello/world/bindings
+  LIBRARY_OUTPUT_DIRECTORY $<1:${OUTPUT_DIR_FOR_BINDINGS_CARB_PLUGIN_NATIVE}>
+  RUNTIME_OUTPUT_DIRECTORY $<1:${OUTPUT_DIR_FOR_BINDINGS_CARB_PLUGIN_NATIVE}>
+  ARCHIVE_OUTPUT_DIRECTORY $<1:${OUTPUT_DIR_FOR_BINDINGS_CARB_PLUGIN_NATIVE}>
 )
 
 target_include_directories(_example_carb_bindings PRIVATE
