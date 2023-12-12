@@ -17,8 +17,9 @@ DISABLE_PYBIND11_DYNAMIC_CAST(omni::hello::world::IExampleCarbInterface)
 
 namespace {
 
-    // Define the pybind11 module using the same name specified in premake5.lua
-    PYBIND11_MODULE(_example_bindings, m) {
+    // Define the pybind11 module - this name must be the same as specified in the [name].cpython-310-x86_64etc.[so|dll]
+    // binary module that gets generated and that it is used in python with "import ..bindings.[name]"
+    PYBIND11_MODULE(_example_carb_bindings, m) {
         using namespace omni::hello::world;
 
         m.doc() = "pybind11 omni.hello.world bindings";

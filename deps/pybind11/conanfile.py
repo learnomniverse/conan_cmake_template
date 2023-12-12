@@ -16,8 +16,14 @@ class PyBind11Conan(ConanFile):
     def system_requirements(self):
         import subprocess
         import sys
-        # pip.main(["install", "py7zr"])
-        subprocess.check_call([sys.executable, "-m", "pip", "install", "py7zr"])
+        import importlib.util
+        # Check if py7zr is installed
+        if importlib.util.find_spec("py7zr") is None:
+            # Install py7zr if not installed
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "py7zr"])
+        else:
+            # Skip installation if already installed
+            pass
 
     def build(self):
         # pybind11 = "https://d4i3qtqj3r0z5.cloudfront.net/pybind11%402.7.1-0.7z"
@@ -33,17 +39,32 @@ class PyBind11Conan(ConanFile):
         os.unlink(local_filename)
 
     def package(self):
-        copy(self, "*.*", self.build_folder, self.package_folder)
+        copy(self, "*", self.build_folder, self.package_folder)
         # copy(self, "*.lib", self.build_folder, os.path.join(self.package_folder, "lib"))
         # copy(self, "*.a", self.build_folder, os.path.join(self.package_folder, "lib"))
         # print(f"BBBBBBBBBBBBBBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA {self.package_folder}")
 
+    def package_id(self):
+        # This is a header-only library, no need to store any info like architecture, os, etc.
+        self.info.clear()
+
     def package_info(self):
-        self.cpp_info.includedirs = ['include']
-        self.cpp_info.libdirs = ['lib']
-        # self.cpp_info.names["cmake_find_package"] = "kit-sdk"
-        # self.cpp_info.components["kit-sdk"].names["cmake_find_package"] = "kit-sdk"
-        # print(f"ZUBAAAAAAAAAAAAAAAAAAAT - {self.cpp_info.components['kit-sdk']}")
-        # self.cpp_info.libs = ["kit-sdk"]
-        pass
+        cmake_base_path = os.path.join("lib", "cmake", "pybind11")
+        self.cpp_info.set_property("cmake_target_name", "pybind11_all_do_not_use")
+        self.cpp_info.components["headers"].includedirs = ["include"]
+        self.cpp_info.components["pybind11_"].set_property("cmake_target_name", "pybind11::pybind11")
+        self.cpp_info.components["pybind11_"].set_property("cmake_module_file_name", "pybind11")
+        self.cpp_info.components["pybind11_"].builddirs = [cmake_base_path]
+        self.cpp_info.components["pybind11_"].requires = ["headers"]
+        cmake_file = os.path.join(cmake_base_path, "pybind11Common.cmake")
+        # This will allows us to use the shipped cmake modules
+        self.cpp_info.set_property("cmake_build_modules", [cmake_file])
+        self.cpp_info.components["embed"].requires = ["pybind11_"]
+        self.cpp_info.components["module"].requires = ["pybind11_"]
+        self.cpp_info.components["python_link_helper"].requires = ["pybind11_"]
+        self.cpp_info.components["windows_extras"].requires = ["pybind11_"]
+        self.cpp_info.components["lto"].requires = ["pybind11_"]
+        self.cpp_info.components["thin_lto"].requires = ["pybind11_"]
+        self.cpp_info.components["opt_size"].requires = ["pybind11_"]
+        self.cpp_info.components["python2_no_register"].requires = ["pybind11_"]
 

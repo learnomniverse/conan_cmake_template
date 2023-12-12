@@ -399,6 +399,8 @@ ${OS_AND_ARCHITECTURE}
 |   |       +-- omni
 |   |           +-- hello
 |   |               +-- world
+|   |                   +-- bindings
+|   |                   +-- scripts -> ${OMNI_HELLO_WORLD_DIR}/python/scripts
 |   +-- kit -> ${kit_sdk_PACKAGE_FOLDER_RELEASE}
 target-deps
 +-- nv_usd -> ${nv_usd_PACKAGE_FOLDER_RELEASE}
@@ -436,23 +438,35 @@ target_link_libraries(omni.hello.world.plugin PRIVATE
   carb_sdk::carb_sdk
 )
 
+# Create a custom target to copy the __init__.py file (the only one we don't symlink)
+set(SOURCE_FILE "${OMNI_HELLO_WORLD_DIR}/python/__init__.py")
+set(DESTINATION_DIR "${OMNI_HELLO_WORLD_BUILD_DIR}/omni/hello/world")
+add_custom_target(CopyPythonInitFile
+    COMMAND ${CMAKE_COMMAND} -E copy "${SOURCE_FILE}" "${DESTINATION_DIR}"
+    DEPENDS ${SOURCE_FILE}
+    COMMENT "Copying main python module __init__.py to ${DESTINATION_DIR}"
+)
+
+# Add the custom target to the build process
+add_dependencies(omni.hello.world.plugin CopyPythonInitFile)
 
 
 # Now generate the python bindings project
 
 set(SOURCES ${OMNI_HELLO_WORLD_DIR}/bindings/ExampleBindings.cpp)
 
-add_library(omni.hello.world.python SHARED ${SOURCES})
+# add_library(omni.hello.world.python SHARED ${SOURCES})
+pybind11_add_module(_example_carb_bindings SHARED ${SOURCES})
 
-set_target_properties(omni.hello.world.python PROPERTIES
-  LIBRARY_OUTPUT_DIRECTORY ${OMNI_HELLO_WORLD_BUILD_DIR}/omni/hello/world
+set_target_properties(_example_carb_bindings PROPERTIES
+  LIBRARY_OUTPUT_DIRECTORY ${OMNI_HELLO_WORLD_BUILD_DIR}/omni/hello/world/bindings
 )
 
-target_include_directories(omni.hello.world.python PRIVATE
+target_include_directories(_example_carb_bindings PRIVATE
   ${OMNI_HELLO_WORLD_DIR}/include
 )
 
-target_link_libraries(omni.hello.world.python PRIVATE
+target_link_libraries(_example_carb_bindings PRIVATE
   nv_usd::nv_usd
   carb_sdk::carb_sdk
   pybind11::pybind11

@@ -17,8 +17,14 @@ class KitSDKConan(ConanFile):
     def system_requirements(self):
         import subprocess
         import sys
-        # pip.main(["install", "py7zr"])
-        subprocess.check_call([sys.executable, "-m", "pip", "install", "py7zr"])
+        import importlib.util
+        # Check if py7zr is installed
+        if importlib.util.find_spec("py7zr") is None:
+            # Install py7zr if not installed
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "py7zr"])
+        else:
+            # Skip installation if already installed
+            pass
 
     # def build_requirements(self): # windows only unfortunately
     #     self.tool_requires("7zip/19.00")
@@ -51,7 +57,7 @@ class KitSDKConan(ConanFile):
         os.unlink(local_filename)
 
     def package(self):
-        copy(self, "*.*", self.build_folder, self.package_folder)
+        copy(self, "*", self.build_folder, self.package_folder)
         # copy(self, "*.lib", self.build_folder, os.path.join(self.package_folder, "lib"))
         # copy(self, "*.a", self.build_folder, os.path.join(self.package_folder, "lib"))
         # print(f"BBBBBBBBBBBBBBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA {self.package_folder}")

@@ -8,7 +8,7 @@
 #
 import omni.ext
 import omni.usd
-from ._example_bindings import *
+from ..bindings._example_carb_bindings import *
 
 # Global public interface object.
 _example_carb_interface = None
