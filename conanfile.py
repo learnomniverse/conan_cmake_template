@@ -18,9 +18,16 @@ class OmniverseApp(ConanFile):
         "python/3.10.13+nv3"
     ]
 
+    # Customize the name of the preset in the _compiler/CMakePresets.json after the
+    # "conan-" prefix
+    def layout(self):
+        self.folders.build_folder_vars = ["settings.os", "settings.build_type"]
+        cmake_layout(self)
+
     def generate(self):
         # Generate CMake toolchain file to use the local conan with CMake
         tc = CMakeToolchain(self)
+        tc.cmake_preset_name = "conan-releaseEA"
         tc.generate()
         # And all of the dependency-config.cmake stuff
         cmake = CMakeDeps(self)
