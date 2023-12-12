@@ -5,7 +5,7 @@ SCRIPT_DIR=$(dirname "${BASH_SOURCE[0]}")
 
 # Check if a Conan profile exists
 PROFILE_EXISTS=1
-conan profile show || PROFILE_EXISTS=0
+conan profile show &> /dev/null || PROFILE_EXISTS=0
 
 if [ "$PROFILE_EXISTS" -eq 0 ]; then
     # If no profile exists, detect and create one
