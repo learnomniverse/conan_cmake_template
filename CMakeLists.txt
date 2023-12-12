@@ -52,7 +52,6 @@ else()
 endif()
 # </get_os_and_config_variables>
 
-
 # Create a _build folders structure that mimicks the one that kit-extension-template sample repositories
 # from NVIDIA always set up. Read create_folder_structure() to learn more.
 # This will also symlink the "python/scripts" folder so that the python code of the extension will automatically
