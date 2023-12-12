@@ -1,7 +1,8 @@
 import os
-from conan.tools.files import get, copy, download, unzip
-from conan.tools.cmake import CMakeToolchain, CMake, cmake_layout, CMakeDeps
+
 from conan import ConanFile
+from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain, cmake_layout
+from conan.tools.files import copy, download, get, unzip
 
 
 class KitSDKConan(ConanFile):
@@ -10,14 +11,16 @@ class KitSDKConan(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
     description = "Kit SDK binary dependency"
     license = "MIT"
-    # exports_sources = "*"
 
+    # def build_requirements(self): # windows only unfortunately
+    #     self.tool_requires("7zip/19.00")
     # https://github.com/conan-io/conan/issues/3287#issuecomment-993960784
     # workaround for unsupported proprietary 7z
     def system_requirements(self):
+        import importlib.util
         import subprocess
         import sys
-        import importlib.util
+
         # Check if py7zr is installed
         if importlib.util.find_spec("py7zr") is None:
             # Install py7zr if not installed
@@ -26,55 +29,31 @@ class KitSDKConan(ConanFile):
             # Skip installation if already installed
             pass
 
-    # def build_requirements(self): # windows only unfortunately
-    #     self.tool_requires("7zip/19.00")
-
-    # def source(self):
-    #     tools.download(self.url, "kit-sdk.7z")
-    #     tools.unzip("kit-sdk.7z", destination="_deps")
     def build(self):
-        local_filename = "kit_sdk.7z"
-        # kit_sdk = "https://d4i3qtqj3r0z5.cloudfront.net/kit-sdk%40105.1.0%2Brelease.51.a7407fb5.tc.linux-x86_64.release.7z"
+
+        # Note: we don't pull debug deps for this package
+        if self.settings.arch == "x86_64" and self.settings.os == "Linux":
+            download_link = "https://d4i3qtqj3r0z5.cloudfront.net/kit-sdk%40105%2E1%2E0%2Brelease%2E51%2Ea7407fb5%2Etc%2Elinux-x86_64%2Erelease%2E7z"
+            expected_sha256 = "57d69c91f185491cc1f8181062c908f5389d5e2b780efd20aa9ed6187e12328d"
+        elif self.settings.arch == "x86_64" and self.settings.os == "Windows":
+            download_link = "https://d4i3qtqj3r0z5.cloudfront.net/kit-sdk%40105%2E1%2E0%2Brelease%2E51%2Ea7407fb5%2Etc%2Ewindows-x86_64%2Erelease%2E7z"
+            expected_sha256 = "aa561b1037c434fe1dc450238f99c077327ca47482e34e0cf0cb96b5a4d5e037"
+        else:
+            raise ConanInvalidConfiguration(f"Unsupported triple {self.settings.arch}-{self.settings.os}")
+
         # debug quick download version
-        kit_sdk = "http://127.0.0.1:8000/kit-sdk@105.1.0+release.51.a7407fb5.tc.linux-x86_64.release.7z"
+        # download_link = "http://127.0.0.1:8000/kit-sdk@105.1.0+release.51.a7407fb5.tc.linux-x86_64.release.7z"
         # kit_kernel = "https://d4i3qtqj3r0z5.cloudfront.net/kit-kernel%40105.1%2Brelease.127680.dd92291b.tc.linux-x86_64.release.zip"
 
-        # https://docs.conan.io/2/tutorial/creating_packages/other_types_of_packages/package_prebuilt_binaries.html?highlight=binary
-        # _os = {"Windows": "win", "Linux": "linux", "Macos": "macos"}.get(str(self.settings.os))
-        # _arch = str(self.settings.arch).lower()
-        #  url = "{}/{}_{}.tgz".format(base_url, _os, _arch)
-        # get(self, kit_sdk, filename="kit-sdk.7z", md5="2382ac114b2d91c4cd07b51a7e2272f0")
-        download(self, kit_sdk, filename=local_filename, md5="2382ac114b2d91c4cd07b51a7e2272f0")
-        # get(self, kit_kernel, filename="kit_kernel.zip", md5="0363bf9d19dc9b3585a6e5b4f2bf8440")
-
-        # self.run("7z x kit-sdk.7z")
-
-        # unzip(self, "kit-sdk.7z")
+        download(self, download_link, filename=self.name, sha256=expected_sha256)
 
         import py7zr
-        with py7zr.SevenZipFile(local_filename, mode='r') as z:
+        with py7zr.SevenZipFile(self.name, mode='r') as z:
             z.extractall(path=".")
-        os.unlink(local_filename)
+        os.unlink(self.name)
 
     def package(self):
         copy(self, "*", self.build_folder, self.package_folder)
-        # copy(self, "*.lib", self.build_folder, os.path.join(self.package_folder, "lib"))
-        # copy(self, "*.a", self.build_folder, os.path.join(self.package_folder, "lib"))
-        # print(f"BBBBBBBBBBBBBBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA {self.package_folder}")
 
     def package_info(self):
-        # self.cpp_info.names["cmake_find_package"] = "kit-sdk"
-        # self.cpp_info.components["kit-sdk"].names["cmake_find_package"] = "kit-sdk"
-        # print(f"ZUBAAAAAAAAAAAAAAAAAAAT - {self.cpp_info.components['kit-sdk']}")
-        # self.cpp_info.libs = ["kit-sdk"]
         pass
-
-    # def generate(self):
-    #     tc = CMakeToolchain(self)
-    #     # tc.variables["MYVAR"] = "MYVAR_VALUE"
-    #     # tc.preprocessor_definitions["MYDEFINE"] = "MYDEF_VALUE"
-    #     # print(f"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA {self.recipe_folder}")
-    #     # tc.variables["MYVAR"] = self.package_folder
-    #     tc.generate()
-    #     cmake = CMakeDeps(self)
-    #     cmake.generate()

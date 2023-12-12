@@ -10,14 +10,16 @@ class CarbSDKConan(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
     description = "Carb SDK binary dependency"
     license = "MIT"
-    # exports_sources = "*"
 
+    # def build_requirements(self): # windows only unfortunately
+    #     self.tool_requires("7zip/19.00")
     # https://github.com/conan-io/conan/issues/3287#issuecomment-993960784
     # workaround for unsupported proprietary 7z
     def system_requirements(self):
+        import importlib.util
         import subprocess
         import sys
-        import importlib.util
+
         # Check if py7zr is installed
         if importlib.util.find_spec("py7zr") is None:
             # Install py7zr if not installed
@@ -26,40 +28,30 @@ class CarbSDKConan(ConanFile):
             # Skip installation if already installed
             pass
 
-    # def build_requirements(self): # windows only unfortunately
-    #     self.tool_requires("7zip/19.00")
-
-    # def source(self):
-    #     tools.download(self.url, "kit-sdk.7z")
-    #     tools.unzip("kit-sdk.7z", destination="_deps")
     def build(self):
-        local_filename = "carb_sdk.7z"
-        # carb_sdk = "https://d4i3qtqj3r0z5.cloudfront.net/carb_sdk%2Bplugins.linux-x86_64%40158.2%2Brelease158.tc9429.489984ef.7z"
+
+        # Note: we don't pull debug deps for this package
+        if self.settings.arch == "x86_64" and self.settings.os == "Linux":
+            download_link = "https://d4i3qtqj3r0z5.cloudfront.net/carb_sdk%2Bplugins%2Elinux-x86_64%40158%2E2%2Brelease158%2Etc9429%2E489984ef%2E7z"
+            expected_sha256 = "937e737f886e2c5f92d4f8f824f83d0e0ae55935b73c744ce2d2a91ffdb1a69a"
+        elif self.settings.arch == "x86_64" and self.settings.os == "Windows":
+            download_link = "https://d4i3qtqj3r0z5.cloudfront.net/kit-sdk%40105%2E1%2E0%2Brelease%2E51%2Ea7407fb5%2Etc%2Ewindows-x86_64%2Erelease%2E7z"
+            expected_sha256 = "1cdc98208686991f96d36c09651ace3faa8e241afad43031ced30755ee753bc4"
+        else:
+            raise ConanInvalidConfiguration(f"Unsupported triple {self.settings.arch}-{self.settings.os}")
+
         # debug quick download version
-        carb_sdk = "http://127.0.0.1:8000/carb_sdk+plugins.linux-x86_64@158.2+release158.tc9429.489984ef.7z"
+        # file_to_download = "http://127.0.0.1:8000/carb_sdk+plugins.linux-x86_64@158.2+release158.tc9429.489984ef.7z"
 
-        # https://docs.conan.io/2/tutorial/creating_packages/other_types_of_packages/package_prebuilt_binaries.html?highlight=binary
-        # _os = {"Windows": "win", "Linux": "linux", "Macos": "macos"}.get(str(self.settings.os))
-        # _arch = str(self.settings.arch).lower()
-        #  url = "{}/{}_{}.tgz".format(base_url, _os, _arch)
-        # get(self, kit_sdk, filename="kit-sdk.7z", md5="2382ac114b2d91c4cd07b51a7e2272f0")
-        download(self, carb_sdk, filename=local_filename, md5="77d6b08bf6b71fafd2bb9d60fef15c0f")
-        # get(self, kit_kernel, filename="kit_kernel.zip", md5="0363bf9d19dc9b3585a6e5b4f2bf8440")
-
-        # self.run("7z x kit-sdk.7z")
-
-        # unzip(self, "kit-sdk.7z")
+        download(self, download_link, filename=self.name, sha256=expected_sha256)
 
         import py7zr
-        with py7zr.SevenZipFile(local_filename, mode='r') as z:
+        with py7zr.SevenZipFile(self.name, mode='r') as z:
             z.extractall(path=".")
-        os.unlink(local_filename)
+        os.unlink(self.name)
 
     def package(self):
         copy(self, "*", self.build_folder, self.package_folder)
-        # copy(self, "*.lib", self.build_folder, os.path.join(self.package_folder, "lib"))
-        # copy(self, "*.a", self.build_folder, os.path.join(self.package_folder, "lib"))
-        # print(f"BBBBBBBBBBBBBBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA {self.package_folder}")
 
     def package_info(self):
         self.cpp_info.includedirs = ['include']

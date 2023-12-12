@@ -8,15 +8,18 @@ class PyBind11Conan(ConanFile):
     name = "pybind11"
     version = "2.7.1-0"
     settings = "os", "compiler", "build_type", "arch"
-    description = "PyBind11 binary dependency"
+    description = "PyBind11 dependency"
     license = "MIT"
 
+    # def build_requirements(self): # windows only unfortunately
+    #     self.tool_requires("7zip/19.00")
     # https://github.com/conan-io/conan/issues/3287#issuecomment-993960784
     # workaround for unsupported proprietary 7z
     def system_requirements(self):
+        import importlib.util
         import subprocess
         import sys
-        import importlib.util
+
         # Check if py7zr is installed
         if importlib.util.find_spec("py7zr") is None:
             # Install py7zr if not installed
@@ -26,23 +29,20 @@ class PyBind11Conan(ConanFile):
             pass
 
     def build(self):
-        # pybind11 = "https://d4i3qtqj3r0z5.cloudfront.net/pybind11%402.7.1-0.7z"
+        download_link = "https://d4i3qtqj3r0z5.cloudfront.net/pybind11%402.7.1-0.7z"
+        expected_sha256 = "a44fe1be203d0f55aaf1f926b5578e954c4bf35d84d676f98a109e9b0d6938b9"
         # debug quick download version
-        pybind11 = "http://127.0.0.1:8000/pybind11@2.7.1-0.7z"
-        local_filename = "pybind11.7z"
+        # pybind11 = "http://127.0.0.1:8000/pybind11@2.7.1-0.7z"
 
-        download(self, pybind11, filename=local_filename, md5="7e13af10d18fc7a19f10a2633432b633")
+        download(self, download_link, filename=self.name, sha256=expected_sha256)
 
         import py7zr
-        with py7zr.SevenZipFile(local_filename, mode='r') as z:
+        with py7zr.SevenZipFile(self.name, mode='r') as z:
             z.extractall(path=".")
-        os.unlink(local_filename)
+        os.unlink(self.name)
 
     def package(self):
         copy(self, "*", self.build_folder, self.package_folder)
-        # copy(self, "*.lib", self.build_folder, os.path.join(self.package_folder, "lib"))
-        # copy(self, "*.a", self.build_folder, os.path.join(self.package_folder, "lib"))
-        # print(f"BBBBBBBBBBBBBBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA {self.package_folder}")
 
     def package_id(self):
         # This is a header-only library, no need to store any info like architecture, os, etc.
@@ -67,4 +67,3 @@ class PyBind11Conan(ConanFile):
         self.cpp_info.components["thin_lto"].requires = ["pybind11_"]
         self.cpp_info.components["opt_size"].requires = ["pybind11_"]
         self.cpp_info.components["python2_no_register"].requires = ["pybind11_"]
-

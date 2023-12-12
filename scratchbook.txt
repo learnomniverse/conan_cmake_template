@@ -19,13 +19,16 @@
 
 
 
+Usa
+    $ ./tools/packman/packman list kit-sdk -r packman:cloudfront -st
+se serve elencarli per aggiornare le conanrecipes. | grep tcbuildnumber per maggiore precisione.
+
+per l'md5 per aggiornare le mappe:
+    echo "kit-sdk@105.1.0+release.51.a7407fb5.tc.windows-x86_64.release.7z" | sed 's/@/%40/g; s/+/%2B/g; s/\./%2E/g' | xargs -I {} wget -O - "https://d4i3qtqj3r0z5.cloudfront.net/{}" | md5sum
 
 
 
-
-
-
-
+https://d4i3qtqj3r0z5.cloudfront.net/kit-sdk@105.1.0+release.51.a7407fb5.tc.windows-x86_64.release.7z
 
 ---------------------
 
