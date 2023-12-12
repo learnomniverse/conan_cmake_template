@@ -1,5 +1,8 @@
-_*
+# Exclude directories starting with _
+_*/
+# Exclude specific files
 CMakeUserPresets.json
 *.zip
 *.7z
+# Exclude the 'temp' directory
 temp/
