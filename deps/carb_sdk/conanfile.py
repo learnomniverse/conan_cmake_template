@@ -35,7 +35,7 @@ class CarbSDKConan(ConanFile):
             download_link = "https://d4i3qtqj3r0z5.cloudfront.net/carb_sdk%2Bplugins%2Elinux-x86_64%40158%2E2%2Brelease158%2Etc9429%2E489984ef%2E7z"
             expected_sha256 = "937e737f886e2c5f92d4f8f824f83d0e0ae55935b73c744ce2d2a91ffdb1a69a"
         elif self.settings.arch == "x86_64" and self.settings.os == "Windows":
-            download_link = "https://d4i3qtqj3r0z5.cloudfront.net/kit-sdk%40105%2E1%2E0%2Brelease%2E51%2Ea7407fb5%2Etc%2Ewindows-x86_64%2Erelease%2E7z"
+            download_link = "https://d4i3qtqj3r0z5.cloudfront.net/carb_sdk%2Bplugins%2Ewindows-x86_64%40158%2E2%2Brelease158%2Etc9429%2E489984ef%2E7z"
             expected_sha256 = "1cdc98208686991f96d36c09651ace3faa8e241afad43031ced30755ee753bc4"
         else:
             raise ConanInvalidConfiguration(f"Unsupported triple {self.settings.arch}-{self.settings.os}")
