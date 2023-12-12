@@ -21,10 +21,6 @@ class OmniverseApp(ConanFile):
     def generate(self):
         # Generate CMake toolchain file to use the local conan with CMake
         tc = CMakeToolchain(self)
-        # tc.variables["MYVAR"] = "MYVAR_VALUE"
-        # tc.preprocessor_definitions["MYDEFINE"] = "MYDEF_VALUE"
-        # print(f"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA {self.recipe_folder}")
-        # tc.variables["MYVAR"] = self.package_folder
         tc.generate()
         # And all of the dependency-config.cmake stuff
         cmake = CMakeDeps(self)
