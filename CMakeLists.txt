@@ -58,7 +58,7 @@ find_package(pybind11 REQUIRED)
 
 # Just some helper functions to create symlinks, set up the folder structure in _build,
 # create folders, etc.
-include(tools/OVFilesystemHelper.cmake)
+include(ov_utils/tools/OVFilesystemHelper.cmake)
 
 # Create a _build folders structure that mimicks the one that kit-extension-template sample repositories
 # from NVIDIA always set up. Read create_folder_structure() to learn more.
@@ -114,14 +114,21 @@ set_target_properties(omni.hello.world.plugin PROPERTIES
   ARCHIVE_OUTPUT_DIRECTORY $<1:${OUTPUT_DIR_FOR_NATIVE_CPP_CARB_PLUGIN_NATIVE}>
 )
 
+if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
+  # Add the -Wno-deprecated flag to disable deprecated warnings
+  target_compile_options(omni.hello.world.plugin PRIVATE -Wno-deprecated)
+endif()
+
 target_include_directories(omni.hello.world.plugin PRIVATE
   ${OMNI_HELLO_WORLD_DIR}/include
 )
 
 # Link libraries from Conan packages. This also adds the include directories!
 target_link_libraries(omni.hello.world.plugin PRIVATE
-  nv_usd::nv_usd
   carb_sdk::carb_sdk
+  nv_usd::nv_usd
+  python::python
+  kit_sdk::kit_sdk
 )
 
 # Create a custom target to copy the __init__.py file (the only one we don't symlink)
@@ -137,6 +144,26 @@ add_custom_target(CopyPythonInitFile
 
 # Add the custom target to the build process
 add_dependencies(omni.hello.world.plugin CopyPythonInitFile)
+
+# Apply some compilation options and defines
+if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
+  target_compile_options(omni.hello.world.plugin PRIVATE
+    -Wno-deprecated-declarations
+    -Wno-deprecated
+    -Wno-unused-variable
+    -pthread
+    -Wno-undef
+  )
+  target_compile_definitions(omni.hello.world.plugin PRIVATE _GLIBCXX_USE_CXX11_ABI=0)
+
+  # Link the stdc++fs library
+  target_link_libraries(omni.hello.world.plugin PRIVATE stdc++fs)
+else()
+  target_compile_options(omni.hello.world.plugin PRIVATE
+    /wd4244 /wd4305
+  )
+endif()
+
 # </native_carb_plugin>
 
 

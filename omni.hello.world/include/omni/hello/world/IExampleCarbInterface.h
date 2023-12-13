@@ -23,6 +23,11 @@ namespace omni {
                 CARB_PLUGIN_INTERFACE("omni::hello::world::IExampleCarbInterface", 1, 0);
 
                 /**
+                 * Instructs the C++ module to use a stage for the next calls.
+                 */
+                virtual void setStageFromStageId(long stageId) = 0;
+
+                /**
                  * Print some info about the currently open USD stage from C++.
                  */
                 virtual void printStageInfo() const = 0;

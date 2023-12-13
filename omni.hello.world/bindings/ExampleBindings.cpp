@@ -26,6 +26,7 @@ namespace {
 
         carb::defineInterfaceClass<IExampleCarbInterface>(
             m, "IExampleCarbInterface", "acquire_example_carb_interface", "release_example_carb_interface")
+            .def("set_stage_from_stage_id", &IExampleCarbInterface::setStageFromStageId)
             .def("print_stage_info", &IExampleCarbInterface::printStageInfo)
             /**/;
     }
