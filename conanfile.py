@@ -14,7 +14,7 @@ class OmniverseApp(ConanFile):
         "kit_sdk/105.1.0",
         "nv_usd/22.11.nv.0.2.1195",
         "carb_sdk/158.2+release158",
-        "pybind11/2.7.1-0",
+        "pybind11/2.11.1",
         "python/3.10.13+nv3"
     ]
 

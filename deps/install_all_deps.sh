@@ -16,7 +16,9 @@ fi
 conan create "$SCRIPT_DIR"/kit_sdk --build=missing
 conan create "$SCRIPT_DIR"/nv_usd --build=missing
 conan create "$SCRIPT_DIR"/carb_sdk --build=missing
-conan create "$SCRIPT_DIR"/pybind11 --build=missing
+# packman-provided pybind11 is already configured with wrong paths, use a
+# from-source one so that we don't insert wrong paths
+# conan create "$SCRIPT_DIR"/pybind11 --build=missing
 conan create "$SCRIPT_DIR"/python --build=missing
 
 GREEN='\033[0;32m' # ANSI escape code for green text

@@ -9,23 +9,6 @@
 cmake_minimum_required(VERSION 3.15)
 project(omni.app)
 
-# Find required dependencies thanks to conan
-# <gather_dependencies>
-find_package(kit_sdk REQUIRED)
-find_package(nv_usd REQUIRED)
-find_package(carb_sdk REQUIRED)
-find_package(python REQUIRED)
-# Make totally sure that we're using the python distro shipped by conan instead of one that pybind11 _might_
-# be getting from the host system (and that it could mismatch compared to the carbonite python plugin that the
-# conan kit is using - see https://github.com/pybind/pybind11/issues/2154)
-set(PYTHON_EXECUTABLE "${python_PACKAGE_FOLDER_RELEASE}/python")
-find_package(pybind11 REQUIRED)
-# </gather_dependencies>
-
-# Just some helper functions to create symlinks, set up the folder structure in _build,
-# create folders, etc.
-include(tools/OVFilesystemHelper.cmake)
-
 
 # Get OS_AND_ARCHITECTURE and BUILD_CONFIG variables
 # <get_os_and_config_variables>
@@ -55,6 +38,27 @@ else()
     message(FATAL_ERROR "Unsupported build type. Use Debug or Release.")
 endif()
 # </get_os_and_config_variables>
+
+# Find required dependencies thanks to conan
+# <gather_dependencies>
+find_package(kit_sdk REQUIRED)
+find_package(nv_usd REQUIRED)
+find_package(carb_sdk REQUIRED)
+find_package(python REQUIRED)
+# Make totally sure that we're using the python distro shipped by conan instead of one that pybind11 _might_
+# be getting from the host system (and that it could mismatch compared to the carbonite python plugin that the
+# conan kit is using - see https://github.com/pybind/pybind11/issues/2154)
+if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
+  set(PYTHON_EXECUTABLE "${python_PACKAGE_FOLDER_RELEASE}/python3")
+elseif(CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
+  set(PYTHON_EXECUTABLE "${python_PACKAGE_FOLDER_RELEASE}/python")
+endif()
+find_package(pybind11 REQUIRED)
+# </gather_dependencies>
+
+# Just some helper functions to create symlinks, set up the folder structure in _build,
+# create folders, etc.
+include(tools/OVFilesystemHelper.cmake)
 
 # Create a _build folders structure that mimicks the one that kit-extension-template sample repositories
 # from NVIDIA always set up. Read create_folder_structure() to learn more.
@@ -159,8 +163,8 @@ target_include_directories(_example_carb_bindings PRIVATE
 target_link_libraries(_example_carb_bindings PRIVATE
   nv_usd::nv_usd
   carb_sdk::carb_sdk
-  pybind11::pybind11
   python::python
+  pybind11::pybind11
 )
 
 # </pybind_plugin>
