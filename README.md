@@ -7,6 +7,7 @@ Linux
 ```bash
 # Make sure you clone this repo with the ov_utils submodule as well
 conan_cmake_template$ git clone --recursive git@github.com:learnomniverse/conan_cmake_template.git
+# (otherwise use '$git submodule update --init --recursive' if you already cloned)
 conan_cmake_template$ ./ov_utils/deps/install_all_deps.sh # Download and locally install all dependencies via Conan
 # Create the CMake build files that will reference Conan dependencies automatically in a _compiler/ directory
 conan_cmake_template$ conan install . --output-folder _compiler
