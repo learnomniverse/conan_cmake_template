@@ -1,7 +1,5 @@
-import os
-from conan.tools.files import get, copy
-from conan.tools.cmake import CMakeToolchain, CMake, cmake_layout, CMakeDeps
 from conan import ConanFile
+from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain
 
 
 class OmniverseApp(ConanFile):
@@ -22,7 +20,6 @@ class OmniverseApp(ConanFile):
     # "conan-" prefix
     def layout(self):
         self.folders.build_folder_vars = ["settings.os", "settings.build_type"]
-        # cmake_layout(self)
 
     def generate(self):
         # Generate CMake toolchain file to use the local conan with CMake

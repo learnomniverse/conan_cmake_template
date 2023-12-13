@@ -20,4 +20,5 @@ conan_cmake_template/_compiler$ cmake --build . --config Release
 conan_cmake_template/_compiler$ cd ..
 # Enjoy your fully-built Kit app based on your omni.hello.world extension!
 conan_cmake_template$ $ ./_build/linux-x86_64/release/kit/kit ./_build/linux-x86_64/release/apps/omni.app.kit.dev.kit
+# Create a new empty stage from the File menu and observe the console warnings
 ```
