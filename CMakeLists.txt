@@ -9,6 +9,9 @@
 cmake_minimum_required(VERSION 3.15)
 project(omni.app)
 
+# Set C++ standard to C++17 for every project downstream
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Get OS_AND_ARCHITECTURE and BUILD_CONFIG variables
 # <get_os_and_config_variables>
@@ -130,6 +133,9 @@ target_link_libraries(omni.hello.world.plugin PRIVATE
   python::python
   kit_sdk::kit_sdk
 )
+
+# Add two necessary defines for the nv_usd package
+target_compile_definitions(omni.hello.world.plugin PRIVATE NOMINMAX NDEBUG)
 
 # Create a custom target to copy the __init__.py file (the only one we don't symlink)
 set(SOURCE_FILE "${OMNI_HELLO_WORLD_DIR}/python/__init__.py")
