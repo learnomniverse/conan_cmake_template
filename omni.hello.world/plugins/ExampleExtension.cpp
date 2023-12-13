@@ -27,24 +27,6 @@
 #include <pxr/usd/usdGeom/xform.h>
 #include <pxr/usd/usdUtils/stageCache.h>
 
-// #include <omni/usd/UsdContextIncludes.h>
-// #include <omni/usd/UsdContext.h>
-
-// #include <omni/ext/ExtensionsUtils.h>
-// #include <omni/ext/IExt.h>
-// #include <omni/kit/IApp.h>
-// #include <omni/usd/UtilsIncludes.h>
-// #include <omni/usd/UsdContextIncludes.h>
-// #include <omni/usd/UsdContext.h>
-// // You can import more OpenUSD nv_usd-provided stuff here
-// // #include <pxr/usd/usd/notice.h>
-// #include <pxr/usd/usd/stage.h>
-// // #include <pxr/usd/usd/stageCache.h>
-// #include <pxr/usd/usd/primRange.h>
-// #include <pxr/usd/usdGeom/metrics.h>
-// #include <pxr/usd/usdGeom/xform.h>
-// #include <pxr/usd/usdUtils/stageCache.h>
-
 const struct carb::PluginImplDesc pluginImplDesc = { "omni.hello.world.plugin",
                                                      "An example hello world C++ extension.", "NVIDIA",
                                                      carb::PluginHotReload::eEnabled, "dev" };
