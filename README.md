@@ -1,3 +1,5 @@
+Please read [https://learnomniverse.github.io/](https://learnomniverse.github.io/) for more information.
+
 Example mixed/hybrid Omniverse extension based on [`ov_utils`](https://github.com/learnomniverse/ov_utils) using Conan/CMake for dependencies handling and build system generation. This repo is a starting point for developing NVIDIA Omniverse extensions using both native C++ and Python code.
 
 Your extension's code lives in `omni.hello.world/`. The `ov_utils` git submodule contains the necessary Conan recipes and CMake helpers to download the required dependencies to compile and link your Omniverse extension along with some CMake helpers to recreate a useful local `_build/` directory hierarchy (that includes symlinks to find stuff and have python code hot-reloading work when developing extensions).
